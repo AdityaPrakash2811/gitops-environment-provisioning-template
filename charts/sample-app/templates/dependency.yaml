@@ -1,0 +1,39 @@
+{{- if .Values.dependency.enabled }}
+{{- $sel := dict "component" "dependency" "root" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dependency
+  namespace: {{ include "sample-app.slug" . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sample-app.selectorLabels" $sel | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sample-app.selectorLabels" $sel | nindent 8 }}
+    spec:
+      containers:
+        - name: dependency
+          image: {{ .Values.dependency.image }}
+          ports:
+            - containerPort: {{ .Values.dependency.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dependency
+  namespace: {{ include "sample-app.slug" . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  selector:
+    {{- include "sample-app.selectorLabels" $sel | nindent 4 }}
+  ports:
+    - port: {{ .Values.dependency.port }}
+      targetPort: {{ .Values.dependency.port }}
+{{- end }}

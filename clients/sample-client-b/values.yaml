@@ -1,0 +1,9 @@
+# Overrides only — unset fields fall back to charts/sample-app/values.yaml.
+client:
+  slug: sample-client-b
+
+image:
+  tag: "0.1.0"
+
+app:
+  replicas: 2

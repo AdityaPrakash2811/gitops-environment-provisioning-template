@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: demo-clients
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://example.com/your-org/gitops-environment-provisioning-template.git
+        revision: main
+        directories:
+          - path: clients/*
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: "{{.path.basename}}"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://example.com/your-org/gitops-environment-provisioning-template.git
+          targetRevision: main
+          path: charts/sample-app
+          helm:
+            valueFiles:
+              - $values/{{.path.path}}/values.yaml
+        - repoURL: https://example.com/your-org/gitops-environment-provisioning-template.git
+          targetRevision: main
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{.path.basename}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 3m
+        # Namespace creation is handled by the chart itself (wave -1), not
+        # CreateNamespace=true, so that pruning this Application also
+        # removes the namespace. See docs/ARCHITECTURE.md.

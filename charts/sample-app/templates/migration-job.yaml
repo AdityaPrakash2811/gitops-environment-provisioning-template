@@ -1,0 +1,3 @@
+{{- if .Values.migration.enabled }}
+{{- include "sample-app.migrationJob" (dict "name" "sample-migration" "root" .) }}
+{{- end }}

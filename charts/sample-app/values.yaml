@@ -1,0 +1,61 @@
+# Default values for the sample-app chart. Client-specific overrides live in
+# clients/<slug>/values.yaml and should only set what differs from these
+# defaults.
+
+# Required per-client identity. Left empty on purpose: rendering fails loudly
+# if a client forgets to set it, rather than silently colliding with another
+# client's namespace.
+client:
+  slug: ""
+
+image:
+  repository: example.com/sample-registry/sample-app
+  tag: ""        # required per-client; left empty on purpose
+  pullPolicy: IfNotPresent
+
+app:
+  replicas: 1
+  port: 8080
+  # When true, the app's init container waits for the dependency to accept
+  # TCP connections before the main container starts. Toggled off by the
+  # dependency-readiness experiment to demonstrate the failure mode it
+  # exists to prevent.
+  waitForDependency: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+dependency:
+  enabled: true
+  image: redis:7-alpine
+  port: 6379
+
+migration:
+  enabled: true
+  image: busybox:1.36
+  activeDeadlineSeconds: 120
+  ttlSecondsAfterFinished: 300
+
+# Illustrative only — not sized from any real workload measurement. See
+# docs/ARCHITECTURE.md.
+quota:
+  enabled: true
+  requestsCpu: "500m"
+  requestsMemory: "512Mi"
+  limitsMemory: "1Gi"
+  pods: "20"
+
+limitRange:
+  enabled: true
+  defaultRequestCpu: "25m"
+  defaultRequestMemory: "32Mi"
+  defaultCpu: "100m"
+  defaultMemory: "128Mi"
+  maxCpu: "500m"
+  maxMemory: "512Mi"
+
+networkPolicy:
+  enabled: true

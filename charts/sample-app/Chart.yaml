@@ -1,0 +1,8 @@
+apiVersion: v2
+name: sample-app
+description: >
+  Reference chart demonstrating GitOps multi-tenant provisioning patterns:
+  per-client namespace, sync-wave ordering, a migration-style Job, and a
+  dependency-readiness init-container guard. Not intended for production use.
+type: application
+version: 0.1.0

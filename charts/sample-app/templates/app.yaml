@@ -1,0 +1,44 @@
+{{- $sel := dict "component" "app" "root" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: {{ include "sample-app.slug" . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      {{- include "sample-app.selectorLabels" $sel | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sample-app.selectorLabels" $sel | nindent 8 }}
+    spec:
+      {{- if .Values.app.waitForDependency }}
+      initContainers:
+        - {{- include "sample-app.waitForDependencyContainer" . | nindent 10 }}
+      {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ required "image.tag is required per client" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.port }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: {{ include "sample-app.slug" . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  selector:
+    {{- include "sample-app.selectorLabels" $sel | nindent 4 }}
+  ports:
+    - port: {{ .Values.app.port }}
+      targetPort: {{ .Values.app.port }}
